@@ -35,19 +35,24 @@ def upload():
             file.save(fpath)
 
             vector = extractor.extract(fpath, True)
-            predict = 0  # net.predict(200, vector[0])
+            tensor = net.vector_to_data(vector)
+            predict = net.predict(200, tensor)
+
+            pred = net.to_top_predict(predict)
+
+            result = []
+            for i in range(len(vector)):
+                result.append({
+                    "graph": vector[i],
+                    "peak": pred[i]
+                })
 
             return jsonify({
                 "id": id,
                 "version": version,
                 "result": "success",
                 "data": {
-                    "graph": vector,
-                    "peak": [
-                        {
-                            "prediction": predict
-                        }
-                    ]
+                    "extract": result
                 }
             })
         except Exception as e:

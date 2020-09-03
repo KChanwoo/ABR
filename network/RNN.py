@@ -58,6 +58,32 @@ class Net:
             # self._model = m.model_test_2(495, 1000)
             self._model.summary()
 
+    def vector_to_data(self, vector_list):
+        tensor_list = []
+        for vector in vector_list:
+            max_value = max(vector)
+            change = [x / max_value for x in vector]
+
+            tensor_list.append(change[: 495])
+
+        tensor = tf.convert_to_tensor(tensor_list)
+        tensor = tf.reshape(tensor, (len(tensor_list), len(tensor_list[0]), 1))
+
+        return tensor
+
+    def to_top_predict(self, prediction):
+        top_list = []
+
+        index_list = tf.math.argmax(prediction, 1).numpy()
+        for i in range(len(index_list)):
+            index = index_list[i]
+            top_list.append({
+                "prediction": int(index),
+                "score": float(prediction[i, index].numpy())
+            })
+
+        return top_list
+
     def test(self, index):
         self.build_model()
         self._model.load_weights('./checkpoints/ABR_{}.tf'.format(index))
