@@ -64,7 +64,7 @@ class Net:
             max_value = max(vector)
             change = [x / max_value for x in vector]
 
-            tensor_list.append(change[: 495])
+            tensor_list.append(change[: 495] if len(change) >= 495 else change + [0 for x in range(495 - len(change))])
 
         tensor = tf.convert_to_tensor(tensor_list)
         tensor = tf.reshape(tensor, (len(tensor_list), len(tensor_list[0]), 1))
