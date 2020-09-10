@@ -11,41 +11,52 @@ class Net:
 
             for i in range(len(lines)):
                 line = lines[i]
-                data_split = line.split(',')
-                data_vector = []
-                for j in range(1, len(data_split) - 2):
-                    # model no.1
-                    data_vector.append([int(data_split[j])])
-                    # model no.2
-                    # data_vector.append(int(data_split[j]))
+                data_split = line.split('\t')
 
-                vector = data_vector
-                answer = int(data_split[len(data_split) - 2][2:])
+                if len(data_split) < 2:
+                    continue
 
-                if answer < len(vector):
-                    # model no.1
-                    data_all[0].append(data_vector)
-                    max_value = max(data_vector)
-                    new_list = []
-                    for j in range(len(data_vector)):
-                        new_list.append([data_vector[j][0] / max_value[0]])
-                    data_all[2].append(new_list)
+                index = int(data_split[1])
+                if index == 0:  # first graph only (2020.09.10)
+                    graph = data_split[2].split(',')
+                    peak = data_split[3].split(',')
 
-                    # data_all[1].append([answer, data_vector[answer][0]])
+                    if len(peak) == 0:
+                        continue
 
-                    # model no.1 - 2
-                    zeros = [0] * len(data_vector)
-                    zeros[answer] = 1
-                    data_all[1].append(zeros)
+                    data_vector = []
+                    for j in range(len(graph)):
+                        # model no.1
+                        data_vector.append([float(graph[j])])
+                        # model no.2
+                        # data_vector.append(int(data_split[j]))
 
-                    # model no.2
-                    # image = np.zeros([495, 1000, 1])
-                    # for k in range(len(data_vector)):
-                    #     image[k][data_vector[k]][0] = 1
-                    # data_all[0].append(image)
-                    # data_all[1].append([answer, data_vector[answer]])
+                    vector = data_vector
+                    answer = int(peak[-1])
+
+                    if answer < len(vector):
+                        # model no.1
+                        data_all[0].append(data_vector)
+                        max_value = max(data_vector)
+                        new_list = []
+                        for j in range(len(data_vector)):
+                            new_list.append([data_vector[j][0] / max_value[0]])  # normalization
+                        data_all[2].append(new_list)
+
+                        # model no.1 - 2
+                        zeros = [0] * len(data_vector)
+                        zeros[answer] = 1
+                        data_all[1].append(zeros)
+
+                        # model no.2
+                        # image = np.zeros([495, 1000, 1])
+                        # for k in range(len(data_vector)):
+                        #     image[k][data_vector[k]][0] = 1
+                        # data_all[0].append(image)
+                        # data_all[1].append([answer, data_vector[answer]])
 
             sp = int(len(data_all[0]) * 0.8)
+
             self._train_data = [tf.convert_to_tensor(data_all[2][:sp], dtype=tf.float32), tf.convert_to_tensor(data_all[1][:sp], dtype=tf.float32)]
             self._test_data = [tf.convert_to_tensor(data_all[2][sp:], dtype=tf.float32), tf.convert_to_tensor(data_all[1][sp:], dtype=tf.float32)]
 
@@ -58,13 +69,13 @@ class Net:
             # self._model = m.model_test_2(495, 1000)
             self._model.summary()
 
-    def vector_to_data(self, vector_list):
+    def vector_to_data(self, vector_list, x_limit):
         tensor_list = []
         for vector in vector_list:
             max_value = max(vector)
             change = [x / max_value for x in vector]
 
-            tensor_list.append(change[: 495] if len(change) >= 495 else change + [0 for x in range(495 - len(change))])
+            tensor_list.append(change[: x_limit] if len(change) >= x_limit else change + [0 for x in range(x_limit - len(change))])
 
         tensor = tf.convert_to_tensor(tensor_list)
         tensor = tf.reshape(tensor, (len(tensor_list), len(tensor_list[0]), 1))
@@ -124,7 +135,6 @@ class Net:
             avg_mse = tf.keras.metrics.Mean('mse', dtype=tf.float32)
 
             for j in range(iter):
-
                 labels = self._train_data[1][j * batch_size: j * batch_size + batch_size]
                 inputs = self._train_data[0][j * batch_size: j * batch_size + batch_size]
 

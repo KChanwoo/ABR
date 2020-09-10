@@ -2,7 +2,7 @@ import tensorflow as tf
 
 
 def model_test_1(time_step):
-    input_layer = tf.keras.layers.Input([time_step, 1])
+    input_layer = tf.keras.layers.Input([time_step, 1], dtype=tf.float32)
 
     gru = tf.keras.layers.LSTM(256)(input_layer)
 

@@ -31,12 +31,13 @@ def upload():
 
     if file:
         try:
-            fpath = os.path.join("./", file.filename)
+            fpath = os.path.join(configure["file_path"], file.filename)
+            print(file)
             file.save(fpath)
 
             vector = extractor.extract(fpath, True)
-            tensor = net.vector_to_data(vector)
-            predict = net.predict(200, tensor)
+            tensor = net.vector_to_data(vector, 660)
+            predict = net.predict(300, tensor)
 
             pred = net.to_top_predict(predict)
 
