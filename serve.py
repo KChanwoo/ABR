@@ -5,6 +5,7 @@ from flask import Flask, jsonify, request
 from network.RNN import Net
 from imagelib.extractor import Extractor
 from config import configure
+from lib.ip import IPLocation
 
 import os
 
@@ -15,6 +16,12 @@ extractor = Extractor()
 version = "0.1"
 key = "maistabr"
 iv = "initvector"
+
+
+@app.before_request
+def show_ip():
+    ip = request.remote_addr
+    print("location: ", IPLocation.get_region(ip))
 
 
 @app.route("/")
@@ -32,7 +39,6 @@ def upload():
     if file:
         try:
             fpath = os.path.join(configure["file_path"], file.filename)
-            print(file)
             file.save(fpath)
 
             vector = extractor.extract(fpath, True)
@@ -70,7 +76,6 @@ def upload():
             "result": "fail",
             "message": "No file"
         })
-
 
 
 if __name__ == "__main__":
